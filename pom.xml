@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.icebrew</groupId>
+    <artifactId>icebrew-parent</artifactId>
+    <version>0.1.0</version>
+    <packaging>pom</packaging>
+
+    <name>IceBrew</name>
+    <description>Spring Boot + Vite Integration Framework for Modern Web Development</description>
+    <url>https://github.com/Me1td0wn76/Icebrew_project</url>
+    <inceptionYear>2025</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>Me1td0wn76</id>
+            <name>IceBrew Team</name>
+            <email></email>
+            <url>https://github.com/Me1td0wn76/Icebrew_project</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/Me1td0wn76/Icebrew_project.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Me1td0wn76/Icebrew_project.git</developerConnection>
+        <url>https://github.com/Me1td0wn76/Icebrew_project/tree/main</url>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/Me1td0wn76/Icebrew_project/issues</url>
+    </issueManagement>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-boot.version>3.2.0</spring-boot.version>
+    </properties>
+
+    <modules>
+        <module>icebrew-core</module>
+        <module>icebrew-starter</module>
+        <module>icebrew-cli</module>
+        <module>icebrew-samples</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

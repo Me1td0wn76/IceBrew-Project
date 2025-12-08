@@ -1,0 +1,82 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Java
+*.class
+*.log
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist/
+.vite/
+*.local
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Secrets and credentials
+*.env
+*.env.local
+*.env.*.local
+.env.production
+.env.development
+secrets.yml
+credentials.json
+
+# Maven/Gradle settings with passwords
+settings.xml
+settings-security.xml
+
+# GPG keys
+*.gpg
+*.asc
+secring.*
+
+# Test projects created by CLI
+/my-*/
+/test-*/
+/demo-*/
+
+# Package files
+*.tgz
+
+# Installer build output (keep source .iss files)
+/installer/Output/
+*.exe
+!installer/*.iss 
