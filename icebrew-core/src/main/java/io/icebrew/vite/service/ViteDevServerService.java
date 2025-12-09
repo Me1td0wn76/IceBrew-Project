@@ -1,21 +1,20 @@
 package io.icebrew.vite.service;
 
-import io.icebrew.vite.config.ViteProperties;
-import jakarta.annotation.PreDestroy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import io.icebrew.vite.config.ViteProperties;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Service for managing Vite dev server lifecycle
@@ -28,6 +27,7 @@ public class ViteDevServerService {
     private final ViteProperties viteProperties;
     private Process viteProcess;
     private boolean isRunning = false;
+    private volatile boolean serverReady = false;
 
     public ViteDevServerService(ViteProperties viteProperties) {
         this.viteProperties = viteProperties;
@@ -44,6 +44,13 @@ public class ViteDevServerService {
 
         if (!viteProperties.isEnabled() || !viteProperties.isAutoStart()) {
             logger.info("Vite dev server auto-start is disabled");
+            return;
+        }
+
+        // Check if port is already in use
+        if (isPortInUse(viteProperties.getHost(), viteProperties.getPort())) {
+            logger.warn("Port {} is already in use. Skipping Vite dev server start.", viteProperties.getPort());
+            logger.warn("Please stop the existing process or change the port in application.properties");
             return;
         }
 
@@ -67,6 +74,9 @@ public class ViteDevServerService {
 
             viteProcess = processBuilder.start();
 
+            // Register shutdown hook for cleanup
+            registerShutdownHook();
+
             // Start log reader thread
             startLogReader();
 
@@ -76,7 +86,7 @@ public class ViteDevServerService {
             isRunning = true;
             logger.info("Vite dev server started successfully at {}", viteProperties.getDevServerUrl());
 
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
             logger.error("Failed to start Vite dev server", e);
             stopDevServer();
         }
@@ -89,14 +99,27 @@ public class ViteDevServerService {
     public void stopDevServer() {
         if (viteProcess != null && viteProcess.isAlive()) {
             logger.info("Stopping Vite dev server");
+
+            // Try graceful shutdown first
             viteProcess.destroy();
+
             try {
-                viteProcess.waitFor(10, TimeUnit.SECONDS);
+                boolean exited = viteProcess.waitFor(5, TimeUnit.SECONDS);
+                if (!exited) {
+                    logger.warn("Vite process did not terminate gracefully, forcing shutdown");
+                    killViteProcessTree();
+                    viteProcess.destroyForcibly();
+                    viteProcess.waitFor(5, TimeUnit.SECONDS);
+                }
             } catch (InterruptedException e) {
                 logger.warn("Interrupted while waiting for Vite process to terminate");
+                Thread.currentThread().interrupt();
+                killViteProcessTree();
                 viteProcess.destroyForcibly();
             }
+
             isRunning = false;
+            serverReady = false;
             logger.info("Vite dev server stopped");
         }
     }
@@ -139,6 +162,49 @@ public class ViteDevServerService {
         return command;
     }
 
+    private boolean isPortInUse(String host, int port) {
+        try (java.net.Socket socket = new java.net.Socket()) {
+            socket.connect(new java.net.InetSocketAddress(host, port), 1000);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private void registerShutdownHook() {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Shutdown hook triggered, stopping Vite dev server");
+            stopDevServer();
+        }));
+    }
+
+    private void killViteProcessTree() {
+        if (viteProcess == null) {
+            return;
+        }
+
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            long pid = viteProcess.pid();
+
+            if (os.contains("win")) {
+                // Windows: Kill process tree using taskkill
+                ProcessBuilder pb = new ProcessBuilder("taskkill", "/F", "/T", "/PID", String.valueOf(pid));
+                Process killProcess = pb.start();
+                killProcess.waitFor(3, TimeUnit.SECONDS);
+                logger.debug("Killed Windows process tree for PID: {}", pid);
+            } else {
+                // Unix/Linux/Mac: Kill process group
+                ProcessBuilder pb = new ProcessBuilder("pkill", "-P", String.valueOf(pid));
+                Process killProcess = pb.start();
+                killProcess.waitFor(3, TimeUnit.SECONDS);
+                logger.debug("Killed Unix process tree for PID: {}", pid);
+            }
+        } catch (IOException | InterruptedException e) {
+            logger.warn("Failed to kill Vite process tree", e);
+        }
+    }
+
     private void startLogReader() {
         Thread logThread = new Thread(() -> {
             try (BufferedReader reader = new BufferedReader(
@@ -146,6 +212,14 @@ public class ViteDevServerService {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     logger.info("[Vite] {}", line);
+                    // Detect when Vite is ready - check for various patterns
+                    String cleanLine = line.replaceAll("\\u001B\\[[;\\d]*m", "").trim(); // Remove ANSI codes
+                    if (cleanLine.contains("ready in") ||
+                            cleanLine.contains("Local:") ||
+                            cleanLine.contains("VITE") && cleanLine.contains("ready")) {
+                        logger.info("Vite dev server is ready!");
+                        serverReady = true;
+                    }
                 }
             } catch (IOException e) {
                 logger.debug("Vite log reader closed", e);
@@ -156,7 +230,6 @@ public class ViteDevServerService {
     }
 
     private void waitForServerReady() throws InterruptedException {
-        String serverUrl = viteProperties.getDevServerUrl();
         int timeout = viteProperties.getStartupTimeout();
         int elapsed = 0;
         int checkInterval = 500; // milliseconds
@@ -164,7 +237,7 @@ public class ViteDevServerService {
         logger.info("Waiting for Vite dev server to be ready...");
 
         while (elapsed < timeout * 1000) {
-            if (isServerReady(serverUrl)) {
+            if (serverReady) {
                 return;
             }
             Thread.sleep(checkInterval);
@@ -172,20 +245,5 @@ public class ViteDevServerService {
         }
 
         throw new RuntimeException("Vite dev server did not start within " + timeout + " seconds");
-    }
-
-    private boolean isServerReady(String serverUrl) {
-        try {
-            URL url = new URL(serverUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(1000);
-            connection.setReadTimeout(1000);
-            int responseCode = connection.getResponseCode();
-            connection.disconnect();
-            return responseCode == 200 || responseCode == 404; // 404 is ok, means server is running
-        } catch (IOException e) {
-            return false;
-        }
     }
 }

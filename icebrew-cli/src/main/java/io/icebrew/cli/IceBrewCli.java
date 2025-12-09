@@ -11,7 +11,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "icebrew", version = "IceBrew CLI 0.2.0", description = "IceBrew CLI - Spring Boot + Vite development tool", subcommands = {
+@Command(name = "icebrew", version = "IceBrew CLI 0.2.2", description = "IceBrew CLI - Spring Boot + Vite development tool", subcommands = {
     CommandLine.HelpCommand.class })
 public class IceBrewCli implements Callable<Integer> {
 
@@ -64,7 +64,7 @@ public class IceBrewCli implements Callable<Integer> {
 
   @Command(name = "version", description = "Show version information")
   public Integer version() {
-    System.out.println("IceBrew CLI 0.2.0");
+    System.out.println("IceBrew CLI 0.2.1");
     return 0;
   }
 
@@ -112,7 +112,7 @@ public class IceBrewCli implements Callable<Integer> {
         System.out.println(" Build successful!");
       } else {
         System.err.println();
-        System.err.println("❌ Build failed with exit code: " + exitCode);
+        System.err.println(" Build failed with exit code: " + exitCode);
       }
 
       return exitCode;
@@ -129,7 +129,7 @@ public class IceBrewCli implements Callable<Integer> {
       @Option(names = { "-p", "--port" }, description = "Server port", defaultValue = "8080") int port,
       @Option(names = { "-d", "--dev" }, description = "Development mode") boolean dev) {
     try {
-      System.out.println("🚀 Starting IceBrew application...");
+      System.out.println(" Starting IceBrew application...");
       System.out.println("   Port: " + port);
       System.out.println("   Mode: " + (dev ? "Development" : "Production"));
       System.out.println();

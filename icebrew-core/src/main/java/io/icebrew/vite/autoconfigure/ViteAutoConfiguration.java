@@ -3,11 +3,13 @@ package io.icebrew.vite.autoconfigure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
 import io.icebrew.vite.config.ViteProperties;
@@ -30,6 +32,7 @@ public class ViteAutoConfiguration {
 
     private final ViteProperties viteProperties;
     private final Environment environment;
+    private ViteDevServerService viteDevServerService;
 
     public ViteAutoConfiguration(ViteProperties viteProperties, Environment environment) {
         this.viteProperties = viteProperties;
@@ -44,16 +47,22 @@ public class ViteAutoConfiguration {
         logger.info("Build directory: {}", viteProperties.getBuildDir());
     }
 
+    /**
+     * Start Vite dev server after Spring Boot application is fully ready
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        if (viteDevServerService != null && isDevelopmentMode() && viteProperties.isAutoStart()) {
+            logger.info("Starting Vite dev server after Spring Boot is ready...");
+            viteDevServerService.startDevServer();
+        }
+    }
+
     @Bean
     public ViteDevServerService viteDevServerService() {
-        ViteDevServerService service = new ViteDevServerService(viteProperties);
-
-        // Start dev server if in development mode
-        if (isDevelopmentMode() && viteProperties.isAutoStart()) {
-            service.startDevServer();
-        }
-
-        return service;
+        viteDevServerService = new ViteDevServerService(viteProperties);
+        // Don't start here - wait for ApplicationReadyEvent
+        return viteDevServerService;
     }
 
     @Bean

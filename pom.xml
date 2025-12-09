@@ -6,7 +6,7 @@
 
     <groupId>io.icebrew</groupId>
     <artifactId>icebrew-parent</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.1</version>
     <packaging>pom</packaging>
 
     <name>IceBrew</name>
