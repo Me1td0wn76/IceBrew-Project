@@ -240,7 +240,7 @@ public class IceBrewCli implements Callable<Integer> {
                 <dependency>
                     <groupId>io.icebrew</groupId>
                     <artifactId>icebrew-starter</artifactId>
-                    <version>0.1.0-SNAPSHOT</version>
+                    <version>0.2.2</version>
                 </dependency>
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
