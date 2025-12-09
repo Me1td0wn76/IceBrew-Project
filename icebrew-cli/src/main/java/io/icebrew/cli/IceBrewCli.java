@@ -11,7 +11,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "icebrew", version = "IceBrew CLI 0.1.0", description = "Scaffold new IceBrew projects with Spring Boot + Vite", subcommands = {
+@Command(name = "icebrew", version = "IceBrew CLI 0.2.0", description = "IceBrew CLI - Spring Boot + Vite development tool", subcommands = {
     CommandLine.HelpCommand.class })
 public class IceBrewCli implements Callable<Integer> {
 
@@ -64,8 +64,121 @@ public class IceBrewCli implements Callable<Integer> {
 
   @Command(name = "version", description = "Show version information")
   public Integer version() {
-    System.out.println("IceBrew CLI 0.1.0");
+    System.out.println("IceBrew CLI 0.2.0");
     return 0;
+  }
+
+  @Command(name = "build", description = "Build IceBrew project in current directory")
+  public Integer build(
+      @Option(names = { "-c", "--clean" }, description = "Clean build") boolean clean,
+      @Option(names = { "-s", "--skip-tests" }, description = "Skip tests") boolean skipTests) {
+    try {
+      System.out.println(" Building IceBrew project...");
+      System.out.println();
+
+      // Check if pom.xml exists
+      Path pomXml = Paths.get("pom.xml");
+      if (!Files.exists(pomXml)) {
+        System.err.println(" Error: pom.xml not found. Are you in a Maven project directory?");
+        return 1;
+      }
+
+      // Build Maven command
+      StringBuilder command = new StringBuilder("mvn ");
+      if (clean) {
+        command.append("clean ");
+      }
+      command.append("package");
+      if (skipTests) {
+        command.append(" -DskipTests");
+      }
+
+      System.out.println("Executing: " + command);
+      System.out.println();
+
+      // Execute Maven command
+      ProcessBuilder pb = new ProcessBuilder();
+      if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        pb.command("cmd.exe", "/c", command.toString());
+      } else {
+        pb.command("sh", "-c", command.toString());
+      }
+      pb.inheritIO();
+      Process process = pb.start();
+      int exitCode = process.waitFor();
+
+      if (exitCode == 0) {
+        System.out.println();
+        System.out.println(" Build successful!");
+      } else {
+        System.err.println();
+        System.err.println("❌ Build failed with exit code: " + exitCode);
+      }
+
+      return exitCode;
+
+    } catch (Exception e) {
+      System.err.println(" Error: " + e.getMessage());
+      e.printStackTrace();
+      return 1;
+    }
+  }
+
+  @Command(name = "run", description = "Run IceBrew application in current directory")
+  public Integer run(
+      @Option(names = { "-p", "--port" }, description = "Server port", defaultValue = "8080") int port,
+      @Option(names = { "-d", "--dev" }, description = "Development mode") boolean dev) {
+    try {
+      System.out.println("🚀 Starting IceBrew application...");
+      System.out.println("   Port: " + port);
+      System.out.println("   Mode: " + (dev ? "Development" : "Production"));
+      System.out.println();
+
+      // Check if project is built
+      Path targetDir = Paths.get("target");
+      if (!Files.exists(targetDir)) {
+        System.err.println(" Error: target directory not found.");
+        System.err.println("   Please build the project first: icebrew build");
+        return 1;
+      }
+
+      // Find JAR file
+      Path jarFile = Files.list(targetDir)
+          .filter(p -> p.toString().endsWith(".jar") && !p.toString().endsWith(".original"))
+          .findFirst()
+          .orElse(null);
+
+      if (jarFile == null) {
+        System.err.println(" Error: No JAR file found in target directory.");
+        System.err.println("   Please build the project first: icebrew build");
+        return 1;
+      }
+
+      System.out.println("Starting: " + jarFile.getFileName());
+      System.out.println("Open browser at: http://localhost:" + port);
+      System.out.println();
+      System.out.println("Press Ctrl+C to stop");
+      System.out.println("=".repeat(70));
+      System.out.println();
+
+      // Run Spring Boot application
+      ProcessBuilder pb = new ProcessBuilder();
+      pb.command("java", "-jar", jarFile.toString());
+      pb.environment().put("SERVER_PORT", String.valueOf(port));
+      if (dev) {
+        pb.environment().put("SPRING_PROFILES_ACTIVE", "dev");
+      }
+      pb.inheritIO();
+      Process process = pb.start();
+      int exitCode = process.waitFor();
+
+      return exitCode;
+
+    } catch (Exception e) {
+      System.err.println(" Error: " + e.getMessage());
+      e.printStackTrace();
+      return 1;
+    }
   }
 
   @Override
