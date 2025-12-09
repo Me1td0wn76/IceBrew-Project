@@ -63,6 +63,14 @@ cd frontend && npm install && cd ..
 mvn spring-boot:run
 ```
 
+### Using the installer create command
+```bash
+icebrew create <project-name> -f react-ts
+cd <project-name>
+cd frontend && npm install && cd ..
+mvn spring-boot:run
+```
+
 Your application will be available at `http://localhost:8080`
 
 ### Manual Setup

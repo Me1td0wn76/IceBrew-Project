@@ -40,7 +40,7 @@ IceBrewは、ViteデベロッパーサーバーとSpring Bootをシームレス�
 <dependency>
     <groupId>io.icebrew</groupId>
     <artifactId>icebrew-starter</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.2-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -56,10 +56,18 @@ cd icebrew-cli
 mvn clean package
 
 # 新しいプロジェクトを作成
-java -jar target/icebrew-cli-0.1.0-SNAPSHOT-jar-with-dependencies.jar create my-app
+java -jar target/icebrew-cli-0.2.2-SNAPSHOT-jar-with-dependencies.jar create my-app
 
 # 開発を開始
 cd my-app
+cd frontend && npm install && cd ..
+mvn spring-boot:run
+```
+
+### installerからのcreateコマンド
+```bash
+icebrew create <project-name> -f react-ts
+cd <project-name>
 cd frontend && npm install && cd ..
 mvn spring-boot:run
 ```
