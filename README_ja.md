@@ -194,8 +194,6 @@ java -jar target/my-app-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
 
 コントリビューションを歓迎します！お気軽にPull Requestを送ってください。
 
-**注意:** `release.ps1`と`release.sh`スクリプトはプロジェクトメンテナー専用です。このプロジェクトをフォークした場合は、使用前にこれらのスクリプトをあなたのリポジトリに合わせて修正してください。
-
 1. リポジトリをフォーク
 2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
 3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
