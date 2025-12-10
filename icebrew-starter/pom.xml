@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.icebrew</groupId>
+        <groupId>io.github.me1td0wn76</groupId>
         <artifactId>icebrew-parent</artifactId>
         <version>0.2.2</version>
     </parent>
@@ -16,7 +16,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.icebrew</groupId>
+            <groupId>io.github.me1td0wn76</groupId>
             <artifactId>icebrew-core</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -23,7 +23,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.icebrew</groupId>
+            <groupId>io.github.me1td0wn76</groupId>
             <artifactId>icebrew-starter</artifactId>
             <version>0.2.2</version>
         </dependency>
