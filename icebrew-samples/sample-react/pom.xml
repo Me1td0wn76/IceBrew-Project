@@ -25,7 +25,7 @@
         <dependency>
             <groupId>io.icebrew</groupId>
             <artifactId>icebrew-starter</artifactId>
-            <version>$Version</version>
+            <version>0.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
