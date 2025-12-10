@@ -49,6 +49,7 @@ jobs:
         run: |
           mvn clean deploy -Prelease \
             -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} \
+            -pl '!icebrew-samples' \
             --batch-mode \
             --no-transfer-progress
 
